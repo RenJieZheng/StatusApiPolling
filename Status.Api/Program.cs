@@ -2,6 +2,9 @@ using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
+double jobDuration = builder.Configuration.GetValue<double>("JobSettings:JobDuration", 5);
+bool jobFails = builder.Configuration.GetValue<bool>("JobSettings:JobWillFail", false);
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -18,22 +21,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Configure job duration using the JOB_DURATION environment variable
-double jobDuration = 10;
-string? envJobDuration = builder.Configuration["JOB_DURATION"];
-if (!string.IsNullOrWhiteSpace(envJobDuration) && double.TryParse(envJobDuration, out double duration)) 
-{
-    jobDuration = duration;
-}
-DateTime? jobStartTime = null;
 
-// Configure if the job will fail (error status) using the JOB_WILL_FAIL environment variable
-bool jobFails = false;
-string? envJobFails = builder.Configuration["JOB_WILL_FAIL"];
-if (!string.IsNullOrWhiteSpace(envJobFails) && bool.TryParse(envJobFails, out bool fail))
-{
-    jobFails = fail;
-}
+DateTime? jobStartTime = null;
 var status = "pending";
 
 // Api Endpoints
