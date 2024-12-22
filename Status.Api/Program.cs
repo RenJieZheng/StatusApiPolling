@@ -23,18 +23,24 @@ app.UseHttpsRedirection();
 
 
 DateTime? jobStartTime = null;
-var status = "pending";
 
 // Api Endpoints
+app.MapPost("/job", () => {
+    jobStartTime = DateTime.Now;
+    return Results.Created("job", new { result = "created"});
+})
+.WithName("PostJob")
+.WithOpenApi();
+
 app.MapGet("/status", () => {
-    // Set the start time of a job to the first time the /status endpoint is hit
     if (jobStartTime is null) {
-        jobStartTime = DateTime.Now;
+        return Results.BadRequest(new { error = "Job has not started yet." });
     }
 
     TimeSpan elapsed = DateTime.Now - (DateTime)jobStartTime;
     double seconds = elapsed.TotalSeconds;
 
+    var status = "pending";
     if (seconds > jobDuration) 
     {
         if (jobFails)
@@ -47,7 +53,7 @@ app.MapGet("/status", () => {
         }
     }
 
-    return new {result = status};
+    return Results.Ok(new { result = status });
 })
 .WithName("GetStatus")
 .WithOpenApi();
