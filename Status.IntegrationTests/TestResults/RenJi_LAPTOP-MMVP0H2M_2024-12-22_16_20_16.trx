@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="ba3239c6-0a97-4d0a-9817-27232dbc5108" name="RenJi@LAPTOP-MMVP0H2M 2024-12-22 16:20:16" runUser="LAPTOP-MMVP0H2M\RenJi" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2024-12-22T16:20:16.5790831-05:00" queuing="2024-12-22T16:20:16.5790834-05:00" start="2024-12-22T16:20:15.4105341-05:00" finish="2024-12-22T16:20:16.5839401-05:00" />
+  <TestSettings name="default" id="00bc487c-9d36-49bf-8ab0-4d680e0ed3a9">
+    <Deployment runDeploymentRoot="RenJi_LAPTOP-MMVP0H2M_2024-12-22_16_20_16" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="870b180b-83bf-484b-986a-113685ea36d1" testId="546da6b0-3eee-3b0b-75d4-d497179420d2" testName="Status.IntegrationTests.BasicTest.Get_StatusReturnsPending" computerName="LAPTOP-MMVP0H2M" duration="00:00:00.0060254" startTime="2024-12-22T16:20:16.4370328-05:00" endTime="2024-12-22T16:20:16.4370330-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="870b180b-83bf-484b-986a-113685ea36d1" />
+    <UnitTestResult executionId="7ba205f9-5146-46c6-966c-276bd13007db" testId="a29b2dc0-9d55-5f8b-e56d-d74027060b9e" testName="Status.IntegrationTests.BasicTest.Get_StatusReturnSuccess" computerName="LAPTOP-MMVP0H2M" duration="00:00:00.2217696" startTime="2024-12-22T16:20:16.4210046-05:00" endTime="2024-12-22T16:20:16.4210201-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7ba205f9-5146-46c6-966c-276bd13007db" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Status.IntegrationTests.BasicTest.Get_StatusReturnSuccess" storage="c:\users\renji\documents\projects\statusapipolling\status.integrationtests\bin\debug\net8.0\status.integrationtests.dll" id="a29b2dc0-9d55-5f8b-e56d-d74027060b9e">
+      <Execution id="7ba205f9-5146-46c6-966c-276bd13007db" />
+      <TestMethod codeBase="C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.IntegrationTests\bin\Debug\net8.0\Status.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Status.IntegrationTests.BasicTest" name="Get_StatusReturnSuccess" />
+    </UnitTest>
+    <UnitTest name="Status.IntegrationTests.BasicTest.Get_StatusReturnsPending" storage="c:\users\renji\documents\projects\statusapipolling\status.integrationtests\bin\debug\net8.0\status.integrationtests.dll" id="546da6b0-3eee-3b0b-75d4-d497179420d2">
+      <Execution id="870b180b-83bf-484b-986a-113685ea36d1" />
+      <TestMethod codeBase="C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.IntegrationTests\bin\Debug\net8.0\Status.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Status.IntegrationTests.BasicTest" name="Get_StatusReturnsPending" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="546da6b0-3eee-3b0b-75d4-d497179420d2" executionId="870b180b-83bf-484b-986a-113685ea36d1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a29b2dc0-9d55-5f8b-e56d-d74027060b9e" executionId="7ba205f9-5146-46c6-966c-276bd13007db" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.11)&#xD;
+[xUnit.net 00:00:00.07]   Discovering: Status.IntegrationTests&#xD;
+[xUnit.net 00:00:00.10]   Discovered:  Status.IntegrationTests&#xD;
+[xUnit.net 00:00:00.10]   Starting:    Status.IntegrationTests&#xD;
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]&#xD;
+      Failed to determine the https port for redirect.&#xD;
+[xUnit.net 00:00:00.39]   Finished:    Status.IntegrationTests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

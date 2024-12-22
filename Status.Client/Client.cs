@@ -26,10 +26,10 @@ public class StatusClient : IStatusClient<JobStatus>
         var jsonResponse = await response.Content.ReadAsStringAsync();
         var status = JsonSerializer.Deserialize<JobStatus>(jsonResponse);
         
-        return status ?? new JobStatus{ Result = "No response found" };
+        return status ?? new JobStatus{ result = "No response found" };
     }
 }
 
 public record class JobStatus {
-    public string? Result { get; set; }
+    public string? result { get; set; }
 }
