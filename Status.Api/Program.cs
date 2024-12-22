@@ -53,3 +53,5 @@ app.MapGet("/status", () => {
 .WithOpenApi();
 
 app.Run();
+
+public partial class Program { }
