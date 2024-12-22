@@ -1,0 +1,11 @@
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\bin\Debug\net8.0\Status.Client.deps.json
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\bin\Debug\net8.0\Status.Client.dll
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\bin\Debug\net8.0\Status.Client.pdb
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\Status.Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\Status.Client.AssemblyInfoInputs.cache
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\Status.Client.AssemblyInfo.cs
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\Status.Client.csproj.CoreCompileInputs.cache
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\Status.Client.dll
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\refint\Status.Client.dll
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\Status.Client.pdb
+C:\Users\RenJi\Documents\projects\StatusApiPolling\Status.Client\obj\Debug\net8.0\ref\Status.Client.dll
