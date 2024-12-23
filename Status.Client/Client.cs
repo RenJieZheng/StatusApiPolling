@@ -9,6 +9,7 @@ namespace Status.Client;
 public interface IStatusClient<T>
 {
     Task<T> GetStatusAsync();
+    Task<T> PollWithInitialWaitTime(int initialWaitTime);
     Task<T> PollUntilCompleted();
 }
 
@@ -68,6 +69,11 @@ public class StatusClient : IStatusClient<JobStatus>
         }
         
         return status;
+    }
+
+    public async Task<JobStatus> PollWithInitialWaitTime(int initialWaitTime) {
+        Thread.Sleep(initialWaitTime);
+        return await PollUntilCompleted();
     }
 
     public async Task<JobStatus> PollUntilCompleted() {

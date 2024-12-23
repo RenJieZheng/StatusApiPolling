@@ -36,7 +36,7 @@ public class ClientApiIntegrationTests
     [Fact]
     public async Task StatusClient_PollUntilCompletedReturnsCompleted()
     {
-         // Arrange
+        // Arrange
         var client = _factory.CreateClient();
         StatusClient statusClient = new StatusClient(client, 100, 2, 30000);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
@@ -52,7 +52,7 @@ public class ClientApiIntegrationTests
     [Fact]
     public async Task StatusClient_PollUntilCompletedTimesOut()
     {
-         // Arrange
+        // Arrange
         var client = _factory.CreateClient();
         StatusClient statusClient = new StatusClient(client, 100, 2, 4000);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
@@ -63,5 +63,20 @@ public class ClientApiIntegrationTests
             statusClient.PollUntilCompleted
         );
         Assert.Contains("Polling operation timed out", exception.Message);
+    }
+
+    [Fact]
+    public async Task StatusClient_PollWithIntialWaitTime() {
+        // Arrange
+        var client = _factory.CreateClient();
+        StatusClient statusClient = new StatusClient(client, 100, 2, 30000);
+        using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
+
+        // Act
+        await client.PostAsync("/job", jsonContent);
+        var response = await statusClient.PollWithInitialWaitTime(5000);
+
+        // Assert
+        Assert.Equal("completed", response.result);
     }
 }
