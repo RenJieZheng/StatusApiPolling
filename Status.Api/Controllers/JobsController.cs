@@ -14,11 +14,19 @@ public class JobsController : ControllerBase
         _jobService = jobService;
     }
 
-    [HttpPost("job")]
-    public IActionResult StartJob()
-    {
-        _jobService.StartJob();
-        return Created("job", new { result = "created" });
+    [HttpPost("job/{duration?}/{fail?}")]
+    public IActionResult StartJob(int? duration = null, bool fail = false)
+    {   
+        if (duration is null)
+        {
+            _jobService.StartJob();
+            return Created("job", new { result = "created" });
+        }
+        else
+        {
+            _jobService.StartJob((int)duration, fail);
+            return Created("job", new { result = "created" });
+        }
     }
 
     [HttpGet("status")]

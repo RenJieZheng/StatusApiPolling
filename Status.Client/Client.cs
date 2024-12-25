@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.Json;
-using System.Formats.Asn1;
 
 namespace Status.Client;
 

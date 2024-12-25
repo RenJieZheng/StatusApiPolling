@@ -14,18 +14,19 @@ public class ClientApiIntegrationTests
         _factory = factory;
     }
 
+    // -------------------- Some basic tests -------------------------------------------------------
     [Fact]
     public async Task StatusClient_GetStatusReturnsStatus() 
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 100, 2, 30000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
-        await client.PostAsync("/job", jsonContent);
+        await client.PostAsync("/job/1000/false", jsonContent);
         var response1 = await statusClient.GetStatusAsync();
-        Thread.Sleep(5100);
+        Thread.Sleep(1100);
         var response2 = await statusClient.GetStatusAsync();
 
         // Assert
@@ -38,11 +39,11 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 100, 2, 30000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
-        await client.PostAsync("/job", jsonContent);
+        await client.PostAsync("/job/1000/false", jsonContent);
         var response = await statusClient.PollUntilCompleted();
 
         // Assert
@@ -54,11 +55,11 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 100, 2, 4000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act and Assert
-        await client.PostAsync("/job", jsonContent);
+        await client.PostAsync("/job/10000/false", jsonContent);
         var exception = await Assert.ThrowsAsync<TimeoutException>(
             statusClient.PollUntilCompleted
         );
@@ -69,7 +70,7 @@ public class ClientApiIntegrationTests
     public async Task StatusClient_PollWithIntialWaitTime() {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 100, 2, 30000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
@@ -79,4 +80,7 @@ public class ClientApiIntegrationTests
         // Assert
         Assert.Equal("completed", response.result);
     }
+
+    // ------------------------- More comprehensive tests with logging -------------------------
+    // TODO
 }

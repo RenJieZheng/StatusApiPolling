@@ -54,7 +54,7 @@ public class BasicTests
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
-        await client.PostAsync("/job", jsonContent);
+        await client.PostAsync("/job/1000/false", jsonContent);
         var response = await client.GetAsync("/status");
 
         // Assert
@@ -66,17 +66,19 @@ public class BasicTests
         Assert.Equal("pending", status.result);
     }
 
-    [Fact]
-    public async Task Get_StatusEventuallyReturnsCompleted() 
+    [Theory]
+    [InlineData(false, "completed")]
+    [InlineData(true, "error")]
+    public async Task Get_StatusEventuallyReturnsFinalJobState(bool jobFails, string finalStatus) 
     {
         // Arrange
         var client = _factory.CreateClient();
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
-        await client.PostAsync("/job", jsonContent);
+        await client.PostAsync($"/job/1000/{jobFails}", jsonContent);
         var response = await client.GetAsync("/status");
-        Thread.Sleep(5100);
+        Thread.Sleep(1100);
         var response2 = await client.GetAsync("/status");
 
         // Assert
@@ -90,6 +92,6 @@ public class BasicTests
         var jsonResponse2 = await response2.Content.ReadAsStringAsync();
         var status2 = JsonSerializer.Deserialize<JobStatus>(jsonResponse2);
         Assert.NotNull(status2);
-        Assert.Equal("completed", status2.result);
+        Assert.Equal(finalStatus, status2.result);
     }
 }
