@@ -20,7 +20,7 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 15);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
@@ -39,7 +39,7 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 15);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
@@ -55,13 +55,13 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 5);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act and Assert
         await client.PostAsync("/job/10000/false", jsonContent);
         var exception = await Assert.ThrowsAsync<TimeoutException>(
-            statusClient.PollUntilCompleted
+            () => statusClient.PollUntilCompleted()
         );
         Assert.Contains("Polling operation timed out", exception.Message);
     }
@@ -70,7 +70,7 @@ public class ClientApiIntegrationTests
     public async Task StatusClient_PollWithIntialWaitTime() {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, 10, 2, 5000);
+        StatusClient statusClient = new StatusClient(client, 10, 2, 15);
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
 
         // Act
@@ -83,4 +83,5 @@ public class ClientApiIntegrationTests
 
     // ------------------------- More comprehensive tests with logging -------------------------
     // TODO
+
 }

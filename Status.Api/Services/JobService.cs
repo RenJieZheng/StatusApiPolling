@@ -13,8 +13,8 @@ public interface IJobService
 public class JobService : IJobService
 {
     private DateTime? _startTime;
-    private int _baseJobDuration;
-    private bool _baseJobFailure;
+    private readonly int _baseJobDuration;
+    private readonly bool _baseJobFailure;
 
     private int _jobDuration;
     private bool _jobFails;

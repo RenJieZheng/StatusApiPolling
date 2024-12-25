@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Text.Json;
+using Microsoft.VisualBasic;
 
 namespace Status.Client;
 
 public interface IStatusClient<T>
 {
-    Task<T> GetStatusAsync();
-    Task<T> PollWithInitialWaitTime(int initialWaitTime);
-    Task<T> PollUntilCompleted();
+    Task<T> GetStatusAsync(CancellationToken ct = default);
+    Task<T> PollUntilCompleted(CancellationToken ct = default);
+    Task<T> PollWithInitialWaitTime(int initialWaitTime, CancellationToken ct = default);
+    Task<T> PollWithConstantInterval(int rate, CancellationToken ct = default);
+    Task<T> PollWithExponentialBackoff(int rate, double exponentialBackoff, CancellationToken ct = default);
 }
 
 public class StatusClient : IStatusClient<JobStatus>
@@ -17,9 +21,9 @@ public class StatusClient : IStatusClient<JobStatus>
     private readonly HttpClient _httpClient;
     private int _basePollRate;
     private double _exponentialBackoff;
-    private int _timeOut;
+    private int _maxPollAttempts;
 
-    public StatusClient(HttpClient httpClient, int basePollRate, double exponentialBackoff, int timeOut)
+    public StatusClient(HttpClient httpClient, int basePollRate = 10, double exponentialBackoff = 2, int maxPollAttempts = 25)
     {
         if (basePollRate <= 0)
         {
@@ -29,85 +33,57 @@ public class StatusClient : IStatusClient<JobStatus>
         {
             throw new ArgumentOutOfRangeException(nameof(exponentialBackoff), "Exponential backoff must be greater than 1");
         }
-        if (timeOut <= 0)
+        if (maxPollAttempts <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(timeOut), "Timeout must be greater than 0");
+            throw new ArgumentOutOfRangeException(nameof(maxPollAttempts), " Maximum number of poll attempts must be greater than 0");
         }
 
         _httpClient = httpClient;
         _basePollRate = basePollRate;
         _exponentialBackoff = exponentialBackoff;
-        _timeOut = timeOut;
+        _maxPollAttempts = maxPollAttempts;
     }
     
-    public async Task<JobStatus> GetStatusAsync() {
-        using HttpResponseMessage response = await _httpClient.GetAsync("/status");
-        response.EnsureSuccessStatusCode();
-
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-
-        JobStatus? status;
-        try 
+    public async Task<JobStatus> GetStatusAsync(CancellationToken ct = default) {
+        var status = await _httpClient.GetFromJsonAsync<JobStatus>("/status", ct);
+        if (status is null)
         {
-            status = JsonSerializer.Deserialize<JobStatus>(jsonResponse);
-        } 
-        catch (Exception ex)
-        {
-            if (ex is JsonException || ex is NotSupportedException || ex is ArgumentNullException)
-            {
-                throw new ApplicationException("Failed to deserialize the response from the server.", ex);
-            }
-            else
-            {
-                throw;
-            }
+            throw new ApplicationException("The server returned an invalid response (empty/null).");
         }
-
-        if (status is null) {
-            throw new ApplicationException("The server returned an invalid response (empty/null)");
-        }
-        
         return status;
     }
 
-    public async Task<JobStatus> PollWithInitialWaitTime(int initialWaitTime) {
-        Thread.Sleep(initialWaitTime);
-        return await PollUntilCompleted();
+    public async Task<JobStatus> PollUntilCompleted(CancellationToken ct = default) {
+        return await PollWithExponentialBackoff(_basePollRate, _exponentialBackoff, ct);
+    } 
+
+    public async Task<JobStatus> PollWithInitialWaitTime(int initialWaitTime, CancellationToken ct = default) {
+        await Task.Delay(initialWaitTime);
+        return await PollUntilCompleted(ct);
+    }
+    
+    public async Task<JobStatus> PollWithConstantInterval(int rate, CancellationToken ct) {
+        return await PollWithExponentialBackoff(rate, 1.0, ct);
     }
 
-    public async Task<JobStatus> PollUntilCompleted() {
-        double pollRate = _basePollRate;
-        JobStatus? status;
-        DateTime startTime = DateTime.Now;
-        do {
-            var response = await _httpClient.GetAsync("/status");
-            response.EnsureSuccessStatusCode();
+    public async Task<JobStatus> PollWithExponentialBackoff(int rate, double exponentialBackoff, CancellationToken ct = default) {
+        double pollRate = rate;
+        JobStatus? status = null;
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            try 
-            {
-                status = JsonSerializer.Deserialize<JobStatus>(jsonResponse);
-            } 
-            catch (Exception ex)
-            {
-                if (ex is JsonException || ex is NotSupportedException || ex is ArgumentNullException)
-                {
-                    throw new ApplicationException("Failed to deserialize the response from the server.", ex);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+        for (int i = 0; i < _maxPollAttempts; i += 1) 
+        {
+            ct.ThrowIfCancellationRequested();
+            status = await GetStatusAsync(ct);
             if (status is null || status.result == "pending") 
             {
-                Thread.Sleep((int)pollRate);
-                pollRate *= _exponentialBackoff;
-            } else {
+                await Task.Delay((int)pollRate);
+                pollRate *= exponentialBackoff;
+            } 
+            else 
+            {
                 break;
             }
-        } while ((DateTime.Now - startTime).TotalMilliseconds < _timeOut);
+        } 
 
         if (status is null)
         {
@@ -121,7 +97,7 @@ public class StatusClient : IStatusClient<JobStatus>
         {
             return status;
         }
-    } 
+    }
 }
 
 public record class JobStatus {
