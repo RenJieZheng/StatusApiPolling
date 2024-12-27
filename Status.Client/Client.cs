@@ -182,7 +182,7 @@ public class StatusClient : IStatusClient<JobStatus>
     
     private async Task<JobStatus> Poll(IPollIntervalScheduler pollIntervalScheduler, CancellationToken ct = default) 
     {
-        _logger?.LogInformation("Begin polling until status changes from pending");
+        _logger?.LogInformation("Polling Started");
 
         JobStatus? status = null;
 
@@ -192,7 +192,7 @@ public class StatusClient : IStatusClient<JobStatus>
             status = await GetStatusAsync(ct);
             if (status is null || status.result == "pending") 
             {
-                _logger?.LogDebug($"Current polling interval: {interval}");
+                _logger?.LogInformation($"Current polling interval: {interval} milliseconds");
                 await Task.Delay(interval);
             } 
             else 

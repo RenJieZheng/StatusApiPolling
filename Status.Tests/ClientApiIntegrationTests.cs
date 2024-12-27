@@ -15,9 +15,14 @@ public class ClientApiIntegrationTests
     public ClientApiIntegrationTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
-        _logger = null;
         _defaultWaitTimeScheduler = new AverageJobDurationScheduler();
         _defaultPollIntervalScheduler = new ConstantPollIntervalScheduler(20, 15);
+
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        _logger = loggerFactory.CreateLogger<StatusClient>();
     }   
 
     [Theory]
@@ -27,7 +32,7 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        StatusClient statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
 
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
         await client.PostAsync($"/job/1000/{jobFails}", jsonContent);
@@ -55,7 +60,7 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        StatusClient statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
 
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
         await client.PostAsync($"/job/{jobDuration}/{jobFails}", jsonContent);
@@ -72,7 +77,7 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         var client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        StatusClient statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
 
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
         await client.PostAsync($"/job/500/false", jsonContent);
@@ -82,7 +87,7 @@ public class ClientApiIntegrationTests
             await statusClient.PollUntilCompletedAsync());
     }
 
-     [Theory]
+    [Theory]
     [InlineData(200, false, "completed")]
     [InlineData(200, true, "error")]
     public async Task StatusClient_PollWithInitialWaitTimeAsync(int jobDuration, bool jobFails,
@@ -90,7 +95,7 @@ public class ClientApiIntegrationTests
     {
         // Arrange
         HttpClient client = _factory.CreateClient();
-        StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        StatusClient statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
 
         using var jsonContent = new StringContent("", Encoding.UTF8, "application/json");
         await client.PostAsync($"/job/{jobDuration}/{jobFails}", jsonContent);
@@ -110,7 +115,7 @@ public class ClientApiIntegrationTests
          // Arrange
         var cts = new CancellationTokenSource();
         HttpClient client = _factory.CreateClient();
-        var statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        var statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
         cts.Cancel();
 
         // Act & Assert
@@ -124,7 +129,7 @@ public class ClientApiIntegrationTests
          // Arrange
         var cts = new CancellationTokenSource();
         HttpClient client = _factory.CreateClient();
-        var statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        var statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
         cts.Cancel();
 
         // Act & Assert
@@ -138,11 +143,58 @@ public class ClientApiIntegrationTests
          // Arrange
         var cts = new CancellationTokenSource();
         HttpClient client = _factory.CreateClient();
-        var statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+        var statusClient = new StatusClient(client, null, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
         cts.Cancel();
 
         // Act & Assert
         await Assert.ThrowsAsync<ApplicationException>(async () =>
             await statusClient.PollWithInitialWaitTimeAsync(cts.Token));
+    }
+
+    // ---- Examples with Logging -------------------------------------------------------
+
+    // run with: dotnet test --filter "FullyQualifiedName~PollStatusUntilCompletedAsyncDemonstrateLogging" --logger "console;verbosity=normal"
+    [Fact]
+    public async Task PollStatusUntilCompletedAsyncDemonstrateLogging()
+    {
+        _logger?.LogInformation("------------------- PollStatusUntilCompletedAsyncDemonstrateLogging - Begin --------------------------------------");
+
+        // Arrange
+        ExponentialBackoffScheduler exponentialBackoffScheduler = new ExponentialBackoffScheduler(100, 2, 5);
+        var client = _factory.CreateClient();
+        StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, exponentialBackoffScheduler);
+
+        using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
+        await client.PostAsync($"/job/500/false", jsonContent);
+
+        // Act
+        var response = await statusClient.PollUntilCompletedAsync();
+
+        // Assert
+        Assert.Equal("completed", response.result);
+
+        _logger?.LogInformation("------------------- PollStatusUntilCompletedAsyncDemonstrateLogging - Completed --------------------------------------");
+    }
+
+    // run with: dotnet test --filter "FullyQualifiedName~PollWithInitialWaitTimeAsyncDemonstrateLogging" --logger "console;verbosity=normal"
+    [Fact]
+    public async Task PollWithInitialWaitTimeAsyncDemonstrateLogging()
+    {
+        _logger?.LogInformation("------------------- PollWithInitialWaitTimeAsyncDemonstrateLogging - Begin --------------------------------------");
+
+        // Arrange
+        var client = _factory.CreateClient();
+        StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
+
+        using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
+        await client.PostAsync($"/job/50/false", jsonContent);
+
+        // Act
+        var response = await statusClient.PollWithInitialWaitTimeAsync();
+
+        // Assert
+        Assert.Equal("completed", response.result);
+
+        _logger?.LogInformation("------------------- PollWithInitialWaitTimeAsyncDemonstrateLogging - Completed --------------------------------------");
     }
 }
