@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Status.Api", "Status.Api\St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Status.Client", "Status.Client\Status.Client.csproj", "{E1BAF2FF-B67F-4EF8-9666-AEE7A549BA8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Status.IntegrationTests", "Status.IntegrationTests\Status.IntegrationTests.csproj", "{EF6E0B9E-F985-4A4F-B087-5192EA60A074}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Status.Tests", "Status.Tests\Status.Tests.csproj", "{EF6E0B9E-F985-4A4F-B087-5192EA60A074}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

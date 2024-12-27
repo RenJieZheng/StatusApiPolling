@@ -4,14 +4,14 @@ using Status.Client;
 using System.Text;
 using System.Net;
 
-namespace Status.IntegrationTests;
+namespace Status.Tests;
 
-public class BasicTests
+public class BasicApiTests
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public BasicTests(WebApplicationFactory<Program> factory)
+    public BasicApiTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
     }
