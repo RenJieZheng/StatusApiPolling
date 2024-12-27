@@ -89,28 +89,55 @@ public class StatusClient : IStatusClient<JobStatus>
     {
         _logger?.LogInformation("Attempting to get the job status from the API.");
 
-        JobStatus? status;
-
-        try 
+        try
         {
-            status = await _httpClient.GetFromJsonAsync<JobStatus>("/status", ct);
+            using var response = await _httpClient.GetAsync("/status", ct);
+            response.EnsureSuccessStatusCode();
+
+            var status = await response.Content.ReadFromJsonAsync<JobStatus>(ct);
+            if (status is null)
+            {
+                _logger?.LogError("Failed to parse job status response.");
+                throw new ApplicationException($"Status API returned a response that could not be parsed");
+            }
+
+            _logger?.LogInformation($"Current job status: {status}");
+            return status;
         }
-        catch (Exception ex) 
+        catch (TaskCanceledException)
         {
-            _logger?.LogError(ex, "An error occurred while trying to get a response from the status API.");
-            throw new ApplicationException("A problem occurred while trying to get a response from the status API: ", ex);
+            _logger?.LogInformation("Status check was cancelled.");
+            throw;
         }
-
-
-        if (status is null)
+        catch (HttpRequestException ex)
         {
-            _logger?.LogError("The server returned an invalid response (empty/null).");
-            throw new ApplicationException("The server returned an invalid response (empty/null).");
+            _logger?.LogError(ex, "Network error while retrieving job status.");
+            throw new ApplicationException("There was an issue retrieving a response from the Status API.", ex);
         }
-
-        _logger?.LogInformation("Successfully received job status from the API.");
-        _logger?.LogInformation($"Returning job status: {status}");
-        return status;
+        catch (JsonException ex)
+        {
+            _logger?.LogError(ex, "Invalid JSON response received.");
+            throw new ApplicationException("Status API returned a response that could not be parsed", ex);
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger?.LogError(ex, "Invalid JSON response received.");
+            throw new ApplicationException("Status API returned a response that could not be parsed", ex);
+        }
+        catch (NotSupportedException ex)
+        {
+            _logger?.LogError(ex, "Invalid JSON response received.");
+            throw new ApplicationException("Status API returned a response that could not be parsed", ex);
+        }
+        catch (ApplicationException ex)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Unexpected error during status check.");
+            throw new ApplicationException("An unexpected error occurred while attempting to retrive the job status.", ex);
+        }
     }
 
     /// <inheritdoc/>
@@ -204,12 +231,12 @@ public class StatusClient : IStatusClient<JobStatus>
 
         if (status is null)
         {
-            _logger?.LogError("Received inavlid response while polling for completion status (empty/null).");
+            _logger?.LogError("Polling did not recieve a valid response.");
             throw new ApplicationException("Received inavlid response while polling for completion status (empty/null).");
         }
         else if (status.result == "pending") 
         {
-            _logger?.LogError("Polling operation reached maximum allowed attempts while polling for completion status.");
+            _logger?.LogError("Polling operation timed out.");
             throw new TimeoutException("Polling operation reached maximum allowed attempts while polling for completion status.");
         } 
         else 

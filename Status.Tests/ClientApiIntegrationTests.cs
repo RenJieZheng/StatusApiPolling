@@ -119,7 +119,7 @@ public class ClientApiIntegrationTests
         cts.Cancel();
 
         // Act & Assert
-        var ex = await Assert.ThrowsAsync<ApplicationException>(async () =>
+        var ex = await Assert.ThrowsAsync<TaskCanceledException>(async () =>
             await statusClient.GetStatusAsync(cts.Token));
     }
 
@@ -147,7 +147,7 @@ public class ClientApiIntegrationTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ApplicationException>(async () =>
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
             await statusClient.PollWithInitialWaitTimeAsync(cts.Token));
     }
 
