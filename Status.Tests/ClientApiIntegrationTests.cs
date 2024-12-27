@@ -187,7 +187,7 @@ public class ClientApiIntegrationTests
         StatusClient statusClient = new StatusClient(client, _logger, _defaultWaitTimeScheduler, _defaultPollIntervalScheduler);
 
         using StringContent jsonContent = new("", Encoding.UTF8, "application/json");
-        await client.PostAsync($"/job/50/false", jsonContent);
+        await client.PostAsync($"/job/100/false", jsonContent);
 
         // Act
         var response = await statusClient.PollWithInitialWaitTimeAsync();

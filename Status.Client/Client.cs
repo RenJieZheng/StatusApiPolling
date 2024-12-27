@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Tracing;
 
 namespace Status.Client;
 
@@ -108,7 +109,7 @@ public class StatusClient : IStatusClient<JobStatus>
         }
 
         _logger?.LogInformation("Successfully received job status from the API.");
-        _logger?.LogDebug($"Returning job status: {status}");
+        _logger?.LogInformation($"Returning job status: {status}");
         return status;
     }
 
@@ -225,9 +226,9 @@ public class StatusClient : IStatusClient<JobStatus>
 public interface IWaitTimeScheduler
 {
     /// <summary>
-    /// Retrieves the current recommended wait time (in seconds) before the next polling attempt.
+    /// Retrieves the current recommended wait time (in milliseconds) before the next polling attempt.
     /// </summary>
-    /// <returns>An integer representing the wait time in seconds.</returns>
+    /// <returns>An integer representing the wait time in milliseconds.</returns>
     public int GetWaitTime();
 
     /// <summary>
@@ -250,39 +251,59 @@ public interface IWaitTimeScheduler
 public class AverageJobDurationScheduler : IWaitTimeScheduler
 {
     private long _totalJobDuration;
-    private int _pollCount;
-    private int _defaultWaitTime;
+    private int _jobCount;
+    private int _numJobsRemembered;
+    private double _overshootCorrection;
+    private int _pollInterval;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="AverageJobDurationScheduler"/> class.
     /// </summary>
-    /// <param name="defaultWaitTime">The default wait time in milliseconds. Must be greater than 0. Default is 10ms.</param>\
+    /// <param name="defaultWaitTime">The default wait time in milliseconds. Must be greater than 0. Default is 10ms.</param>
+    /// <param name="numJobsRemembered">Number of historic jobs to record and calculate the average job duration with.</param>
+    /// <param name="overshootCorrection">Reduces the calculated polling interval by a specified percentage to prevent over shooting</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="defaultWaitTime"/> is invalid.</exception>
-    public AverageJobDurationScheduler(int defaultWaitTime = 10)
+    public AverageJobDurationScheduler(
+        int defaultWaitTime = 10,
+        int numJobsRemembered = 10,
+        double overshootCorrection = 0.8
+    )
     {
         if (defaultWaitTime <= 0) 
         {
             throw new ArgumentOutOfRangeException(nameof(defaultWaitTime), "Default wait time must be greater than 0");
         }
-        _defaultWaitTime = defaultWaitTime;
+        if (numJobsRemembered <= 0) 
+        {
+            throw new ArgumentOutOfRangeException(nameof(numJobsRemembered), "Number of remembered jobs must be greater than 0");
+        }
+        if (overshootCorrection <= 0 || overshootCorrection >= 1) 
+        {
+            throw new ArgumentOutOfRangeException(nameof(overshootCorrection), "Overshoot correct must be between 0 and 1");
+        }
+        _pollInterval = defaultWaitTime;
+        _numJobsRemembered = numJobsRemembered;
+        _overshootCorrection = overshootCorrection;
     }
 
     /// <inheritdoc/>
     public int GetWaitTime()
     {
-        if (_pollCount == 0)
-        {
-            return _defaultWaitTime;
-        }
-
-        return (int)(_totalJobDuration / _pollCount);
+        return _pollInterval;
     }
 
     /// <inheritdoc/>
     public void UpdateFromResult(bool initialWaitSuccess, int jobDurationEstimate)
     {
-        _pollCount++;
+        _jobCount++;
         _totalJobDuration += jobDurationEstimate;
+        
+        if (_jobCount == _numJobsRemembered) {
+            _pollInterval = (int)(_totalJobDuration / _jobCount * _overshootCorrection);
+
+            _jobCount = 0;
+            _totalJobDuration = 0;
+        }
     }
 }
 
