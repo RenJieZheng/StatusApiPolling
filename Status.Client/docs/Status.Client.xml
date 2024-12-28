@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Status.Client</name>
+    </assembly>
+    <members>
+        <member name="T:Status.Client.IStatusClient`1">
+            <summary>
+            Defines a client for retrieving and polling job statuses from the status API.
+            </summary>
+            <typeparam name="T">The type representing the job status.</typeparam>
+        </member>
+        <member name="M:Status.Client.IStatusClient`1.GetStatusAsync(System.Threading.CancellationToken)">
+            <summary>
+            Retrieves the current job status from the server.
+            </summary>
+            <param name="ct">Token to cancel the operation.</param>
+            <returns>The current <see cref="T:Status.Client.JobStatus"/>.</returns>
+        </member>
+        <member name="M:Status.Client.IStatusClient`1.PollUntilCompletedAsync(System.Threading.CancellationToken)">
+            <summary>
+            Continuously polls the server until the job is no longer pending or the maximum attempts are reached.
+            </summary>
+            <param name="ct">Token to cancel the operation.</param>
+            <returns>The final <see cref="T:Status.Client.JobStatus"/>.</returns>
+        </member>
+        <member name="M:Status.Client.IStatusClient`1.PollUntilCompletedAsync(Status.Client.IPollIntervalScheduler,System.Threading.CancellationToken)">
+            <summary>
+            Continuously polls the server until the job is no longer pending or the maximum attempts are reached.
+            </summary>
+            <param name="pollIntervalScheduler">Scheduler for generating polling intervals.</param>
+            <param name="ct">Token to cancel the operation.</param>
+            <returns>The final <see cref="T:Status.Client.JobStatus"/>.</returns>
+        </member>
+        <member name="M:Status.Client.IStatusClient`1.PollWithInitialWaitTimeAsync(System.Threading.CancellationToken)">
+            <summary>
+            Waits for an initial period before starting to poll the server for job status.
+            </summary>
+            <param name="ct">Token to cancel the operation.</param>
+            <returns>The final <see cref="T:Status.Client.JobStatus"/>.</returns>
+        </member>
+        <member name="M:Status.Client.IStatusClient`1.PollWithInitialWaitTimeAsync(Status.Client.IWaitTimeScheduler,Status.Client.IPollIntervalScheduler,System.Threading.CancellationToken)">
+            <summary>
+            Waits for an initial period before starting to poll the server for job status.
+            </summary>
+            <param name="waitTimeScheduler">Schduler for generating the initial wait time.</param>
+            <param name="pollIntervalScheduler">Scheduler for generating polling intervals.</param>
+            <param name="ct">Token to cancel the operation.</param>
+            <returns>The final <see cref="T:Status.Client.JobStatus"/>.</returns>
+        </member>
+        <member name="T:Status.Client.StatusClient">
+            <summary>
+            Implements a client for retrieving and polling job statuses from the status API.
+            </summary>
+        </member>
+        <member name="M:Status.Client.StatusClient.#ctor(System.Net.Http.HttpClient,Microsoft.Extensions.Logging.ILogger{Status.Client.StatusClient},Status.Client.IWaitTimeScheduler,Status.Client.IPollIntervalScheduler)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Status.Client.StatusClient"/> class.
+            </summary>
+            <param name="httpClient">The HTTP client used to make requests to the status API.</param>
+            <param name="logger">Logger to log information and warnings</param>
+            <param name="waitTimeScheduler">Schduler for generating an initial wait time.</param>
+            <param name="pollIntervalScheduler">Scheduler for generating polling intervals.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="httpClient"/> is null.</exception>
+        </member>
+        <member name="M:Status.Client.StatusClient.GetStatusAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Status.Client.StatusClient.PollUntilCompletedAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+            <exception cref="T:System.InvalidOperationException">Thrown when the clients poll interval scheduler is not configured.</exception>
+        </member>
+        <member name="M:Status.Client.StatusClient.PollUntilCompletedAsync(Status.Client.IPollIntervalScheduler,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Status.Client.StatusClient.PollWithInitialWaitTimeAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+            /// <exception cref="T:System.InvalidOperationException">Thrown when the clients wait time or poll interval scheduler is not configured.</exception>
+        </member>
+        <member name="M:Status.Client.StatusClient.PollWithInitialWaitTimeAsync(Status.Client.IWaitTimeScheduler,Status.Client.IPollIntervalScheduler,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Status.Client.IWaitTimeScheduler">
+            <summary>
+            Defines methods to calculate a wait time before the next poll and to log the result of a completed poll.
+            </summary>
+        </member>
+        <member name="M:Status.Client.IWaitTimeScheduler.GetWaitTime">
+            <summary>
+            Retrieves the current recommended wait time (in milliseconds) before the next polling attempt.
+            </summary>
+            <returns>An integer representing the wait time in milliseconds.</returns>
+        </member>
+        <member name="M:Status.Client.IWaitTimeScheduler.UpdateFromResult(System.Boolean,System.Int32)">
+            <summary>
+            Updates the initial wait time based on if the current wait time was sufficient
+            and an estimate for how long the job took to complete.
+            </summary>
+            <param name="intialWaitSuccess">
+            A boolean indicating if the last poll started successfully without being too early or too late.
+            </param>
+            <param name="jobDurationEstimate">
+            An integer representing the job duration estimate (in milliseconds) for the last poll.
+            </param>
+        </member>
+        <member name="T:Status.Client.AverageJobDurationScheduler">
+            <summary>
+            An implementation of <see cref="T:Status.Client.IWaitTimeScheduler"/> that computes an average
+            job duration to suggest an optimal wait time for future polls.
+            </summary>
+        </member>
+        <member name="M:Status.Client.AverageJobDurationScheduler.#ctor(System.Int32,System.Int32,System.Double)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Status.Client.AverageJobDurationScheduler"/> class.
+            </summary>
+            <param name="defaultWaitTime">The default wait time in milliseconds. Must be greater than 0. Default is 10ms.</param>
+            <param name="numJobsRemembered">Number of historic jobs to record and calculate the average job duration with.</param>
+            <param name="overshootCorrection">Reduces the calculated polling interval by a specified percentage to prevent over shooting</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="defaultWaitTime"/> is invalid.</exception>
+        </member>
+        <member name="M:Status.Client.AverageJobDurationScheduler.GetWaitTime">
+            <inheritdoc/>
+        </member>
+        <member name="M:Status.Client.AverageJobDurationScheduler.UpdateFromResult(System.Boolean,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Status.Client.IPollIntervalScheduler">
+            <summary>
+            Provides an iterator method that yields poll intervals.
+            </summary>
+        </member>
+        <member name="M:Status.Client.IPollIntervalScheduler.PollIntervals">
+            <summary>
+            Iterator method that yields poll intervals. 
+            </summary>
+        </member>
+        <member name="T:Status.Client.ExponentialBackoffScheduler">
+            <summary>
+            Poll interval scheduler that generates exponentially increasing poll intervals starting from a base rate, up to a maximum number of attempts.
+            </summary>
+        </member>
+        <member name="M:Status.Client.ExponentialBackoffScheduler.#ctor(System.Int32,System.Double,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Status.Client.ExponentialBackoffScheduler"/> class.
+            </summary>
+            <param name="basePollInterval">The base polling interval in milliseconds. Must be greater than 0. Default is 10ms.</param>
+            <param name="exponentialBackoff">The multiplier for exponential backoff. Must be greater than 1. Default is 2.</param>
+            <param name="maxPollAttempts">The maximum number of polling attempts. Must be greater than 0. Default is 15.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="basePollInterval"/>, <paramref name="exponentialBackoff"/>, or <paramref name="maxPollAttempts"/> are invalid.</exception>
+        </member>
+        <member name="M:Status.Client.ExponentialBackoffScheduler.PollIntervals">
+            <summary>
+            Iterator method that yields poll intervals. 
+            Starts at base poll rate, and multiplies by exponentialBackoff for each subsequent attempt.
+            </summary>
+        </member>
+        <member name="T:Status.Client.ConstantPollIntervalScheduler">
+            <summary>
+            Poll interval scheduler that generates constant poll intervals
+            </summary>
+        </member>
+        <member name="M:Status.Client.ConstantPollIntervalScheduler.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Status.Client.ExponentialBackoffScheduler"/> class.
+            </summary>
+            <param name="pollInterval">The polling interval in milliseconds. Must be greater than 0. Default is 10ms.</param>
+            <param name="maxPollAttempts">The maximum number of polling attempts. Must be greater than 0. Default is 15.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="pollInterval"/>, or <paramref name="maxPollAttempts"/> are invalid.</exception>
+        </member>
+        <member name="T:Status.Client.JobStatus">
+            <summary>
+            Represents the status of a job in the system.
+            </summary>
+        </member>
+        <member name="P:Status.Client.JobStatus.result">
+            <summary>
+            The result of the job. Can be "pending", "completed", or "error".
+            </summary>
+        </member>
+    </members>
+</doc>
