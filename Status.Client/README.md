@@ -22,7 +22,7 @@ Methods:
    Same as above, but uses a custom wait-time scheduler and poll interval scheduler before and during polling.
 
 #### IWaitTimeScheduler
-Determines an initial wait period (in milliseconds) before polling for the status. If a user wants to start polling right when a job starts, they can use the wait time to reduce unnessecary pollys.
+Determines an initial wait period (in milliseconds) before polling for the status. For example, if a user wants to start polling right when a job starts, they can use the wait time to reduce unnessecary polling.
 
 Methods:
 1. **`GetWaitTime()`**  

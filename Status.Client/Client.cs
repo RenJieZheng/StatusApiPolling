@@ -68,7 +68,7 @@ public class StatusClient : IStatusClient<JobStatus>
     /// </summary>
     /// <param name="httpClient">The HTTP client used to make requests to the status API.</param>
     /// <param name="logger">Logger to log information and warnings</param>
-    /// <param name="waitTimeScheduler">Schduler for generating an initial wait time.</param>
+    /// <param name="waitTimeScheduler">Scheduler for generating an initial wait time.</param>
     /// <param name="pollIntervalScheduler">Scheduler for generating polling intervals.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="httpClient"/> is null.</exception>
     public StatusClient(
@@ -263,7 +263,7 @@ public interface IWaitTimeScheduler
     /// and an estimate for how long the job took to complete.
     /// </summary>
     /// <param name="intialWaitSuccess">
-    /// A boolean indicating if the last poll started successfully without being too early or too late.
+    /// A boolean indicating the job completed before the initial wait time.
     /// </param>
     /// <param name="jobDurationEstimate">
     /// An integer representing the job duration estimate (in milliseconds) for the last poll.
@@ -289,7 +289,7 @@ public class AverageJobDurationScheduler : IWaitTimeScheduler
     /// <param name="defaultWaitTime">The default wait time in milliseconds. Must be greater than 0. Default is 10ms.</param>
     /// <param name="numJobsRemembered">Number of historic jobs to record and calculate the average job duration with.</param>
     /// <param name="overshootCorrection">Reduces the calculated polling interval by a specified percentage to prevent over shooting</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="defaultWaitTime"/> is invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="defaultWaitTime"/>, <paramref name="numJobsRemembered"/>, or <paramref name="overshootCorrection"/> is invalid.</exception>
     public AverageJobDurationScheduler(
         int defaultWaitTime = 10,
         int numJobsRemembered = 10,

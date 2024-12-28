@@ -1,9 +1,8 @@
 # StatusApiPolling
 
-My solution for an OA from HeyGen (https://www.heygen.com/).
+My solution for a take home assessment from HeyGen (https://www.heygen.com/).
 
-The prompt was to create a simple API that has an endpoint returing the status of a job, and a client library that
-provides utilities to poll for the status of the job.
+The prompt was to create a simple API that has an endpoint returing the status of a job, and a client library that provides utilities to poll for the status of the job.
 
 Project structure:  
 - `Status.Api` – The Status API project.  
